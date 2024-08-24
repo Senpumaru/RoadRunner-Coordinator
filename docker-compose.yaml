@@ -1,0 +1,29 @@
+services:
+  roadrunner-coordinator:
+    dns:
+    - 8.8.8.8
+    - 8.8.4.4
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    # user: "${UID}:${GID}"
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Required for Docker Desktop on macOS and Windows
+    command: |
+      sh -c "echo 'nameserver 8.8.8.8' > /etc/resolv.conf && 
+             echo 'nameserver 8.8.4.4' >> /etc/resolv.conf && 
+             tail -f /dev/null"
+    ports:
+      - "50051:50051"  # Expose gRPC port
+    environment:
+      - GO111MODULE=on
+    # networks:
+    #   - roadrunner-network
+
+# networks:
+#   roadrunner-network:
+#     external: true
