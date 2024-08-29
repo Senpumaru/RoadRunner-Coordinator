@@ -6,5 +6,5 @@ import (
 )
 
 func GreetingActivity(ctx context.Context, name string) (string, error) {
-	return fmt.Sprintf("Hello, %s!", name), nil
+	return fmt.Sprintf("Hola, %s!", name), nil
 }
