@@ -1,34 +1,38 @@
+// cmd/worker/main.go
+
 package main
 
 import (
 	"log"
-	"os"
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
-	"github.com/Senpumaru/RoadRunner-Coordinator/internal/activity"
-	"github.com/Senpumaru/RoadRunner-Coordinator/internal/workflow"
+	"github.com/Senpumaru/RoadRunner-Coordinator/internal/activities"
+	"github.com/Senpumaru/RoadRunner-Coordinator/internal/workflows"
 )
 
 func main() {
-	address := os.Getenv("TEMPORAL_HOST_ADDRESS")
-	if address == "" {
-		address = "localhost:7233"
-	}
-	c, err := client.Dial(client.Options{
-		HostPort: address,
+	log.Println("Starting Temporal worker...")
+
+	// Create the client object just once per process
+	c, err := client.NewClient(client.Options{
+		HostPort: "temporal:7233",
 	})
 	if err != nil {
-		log.Fatalln("Unable to create client", err)
+		log.Fatalln("Unable to create Temporal client", err)
 	}
 	defer c.Close()
 
-	w := worker.New(c, "greeting-task-queue", worker.Options{})
+	// This worker hosts both workflow and activity functions
+	w := worker.New(c, "kafka-to-iceberg-task-queue", worker.Options{})
 
-	w.RegisterWorkflow(workflow.GreetingWorkflow)
-	w.RegisterActivity(activity.GreetingActivity)
+	w.RegisterWorkflow(workflows.KafkaToIcebergWorkflow)
+	w.RegisterActivity(activities.TriggerSparkJob)
 
+	log.Println("Worker registered. Starting to listen on task queue: kafka-to-iceberg-task-queue")
+
+	// Start listening to the task queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		log.Fatalln("Unable to start worker", err)

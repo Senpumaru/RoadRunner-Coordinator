@@ -73,7 +73,7 @@ services:
     networks:
       - roadrunner-network
     ports:
-      - 8080:8080
+      - 8084:8080
 
   go-grpc-server:
     container_name: go-grpc-server  # This sets a fixed name for your container
